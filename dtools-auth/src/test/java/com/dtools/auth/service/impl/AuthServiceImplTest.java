@@ -4,9 +4,11 @@ import com.dtools.auth.config.AuthProperties;
 import com.dtools.auth.enums.AuthRole;
 import com.dtools.auth.enums.UserStatus;
 import com.dtools.auth.mapper.AuthMapper;
+import com.dtools.auth.model.command.LoginCommand;
 import com.dtools.auth.model.command.RefreshTokenCommand;
 import com.dtools.auth.model.entity.AuthRefreshTokenEntity;
 import com.dtools.auth.model.entity.AuthUserEntity;
+import com.dtools.auth.service.AuthAuditService;
 import com.dtools.auth.token.JwtTokenService;
 import com.dtools.auth.token.RefreshTokenService;
 import com.dtools.common.exception.AuthenticationException;
@@ -51,7 +53,8 @@ class AuthServiceImplTest {
                 passwordEncoder,
                 jwtTokenService,
                 refreshTokenService,
-                authProperties
+                authProperties,
+                mock(AuthAuditService.class)
         );
 
         RefreshTokenCommand command = new RefreshTokenCommand();
@@ -96,7 +99,8 @@ class AuthServiceImplTest {
                 mock(PasswordEncoder.class),
                 mock(JwtTokenService.class),
                 refreshTokenService,
-                new AuthProperties()
+                new AuthProperties(),
+                mock(AuthAuditService.class)
         );
         when(refreshTokenService.hashToken(anyString())).thenReturn("old-hash");
         when(authMapper.findActiveRefreshTokenByHash(eq("old-hash"), any(LocalDateTime.class))).thenReturn(null);
@@ -107,5 +111,37 @@ class AuthServiceImplTest {
         assertThatThrownBy(() -> authService.refresh(command))
                 .isInstanceOf(AuthenticationException.class);
         verify(authMapper, never()).insertRefreshToken(any(AuthRefreshTokenEntity.class));
+    }
+
+    /**
+     * @description: 验证登录失败审计通过统一审计服务入口记录
+     * @author: yesterday'jam
+     * @date: 2026/06/08
+     * @注意: 后续审计改为 MQ 或 Outbox 时只需要替换 AuthAuditService 实现
+     */
+    @Test
+    void loginShouldRecordFailureThroughAuditService() {
+        AuthMapper authMapper = mock(AuthMapper.class);
+        AuthAuditService authAuditService = mock(AuthAuditService.class);
+        AuthServiceImpl authService = new AuthServiceImpl(
+                authMapper,
+                mock(PasswordEncoder.class),
+                mock(JwtTokenService.class),
+                mock(RefreshTokenService.class),
+                new AuthProperties(),
+                authAuditService
+        );
+        when(authMapper.findUserByUsername("missing")).thenReturn(null);
+
+        LoginCommand command = new LoginCommand();
+        command.setUsername("missing");
+        command.setPassword("bad-password");
+
+        assertThatThrownBy(() -> authService.login(command))
+                .isInstanceOf(AuthenticationException.class)
+                .hasMessageContaining("用户名或密码错误");
+
+        verify(authAuditService).recordLoginAudit(null, "missing", false, "用户名或密码错误");
+        verify(authMapper, never()).insertLoginAudit(any(), anyString(), any(), anyString(), any(), any());
     }
 }

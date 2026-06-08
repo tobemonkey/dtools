@@ -11,11 +11,11 @@ import com.dtools.auth.model.dto.CurrentUserDTO;
 import com.dtools.auth.model.entity.AuthRefreshTokenEntity;
 import com.dtools.auth.model.entity.AuthUserEntity;
 import com.dtools.auth.security.AuthUserAssembler;
+import com.dtools.auth.service.AuthAuditService;
 import com.dtools.auth.service.AuthService;
 import com.dtools.auth.token.JwtTokenService;
 import com.dtools.auth.token.RefreshTokenService;
 import com.dtools.common.exception.AuthenticationException;
-import com.dtools.common.trace.TraceContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,16 +46,20 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuthProperties authProperties;
 
+    private final AuthAuditService authAuditService;
+
     public AuthServiceImpl(AuthMapper authMapper,
                            PasswordEncoder passwordEncoder,
                            JwtTokenService jwtTokenService,
                            RefreshTokenService refreshTokenService,
-                           AuthProperties authProperties) {
+                           AuthProperties authProperties,
+                           AuthAuditService authAuditService) {
         this.authMapper = authMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenService = jwtTokenService;
         this.refreshTokenService = refreshTokenService;
         this.authProperties = authProperties;
+        this.authAuditService = authAuditService;
     }
 
     /**
@@ -69,16 +73,16 @@ public class AuthServiceImpl implements AuthService {
     public AuthTokenDTO login(LoginCommand command) {
         AuthUserEntity user = authMapper.findUserByUsername(command.getUsername());
         if (user == null || !passwordEncoder.matches(command.getPassword(), user.getPasswordHash())) {
-            recordAudit(null, command.getUsername(), false, LOGIN_FAILED_MESSAGE);
+            authAuditService.recordLoginAudit(null, command.getUsername(), false, LOGIN_FAILED_MESSAGE);
             throw new AuthenticationException(LOGIN_FAILED_MESSAGE);
         }
         if (!UserStatus.ENABLED.getCode().equals(user.getStatus())) {
-            recordAudit(user.getId(), user.getUsername(), false, "账号已禁用");
+            authAuditService.recordLoginAudit(user.getId(), user.getUsername(), false, "账号已禁用");
             throw new AuthenticationException("账号已禁用");
         }
         CurrentUserDTO currentUser = buildCurrentUser(user);
         AuthTokenDTO token = issueTokenPair(currentUser);
-        recordAudit(user.getId(), user.getUsername(), true, null);
+        authAuditService.recordLoginAudit(user.getId(), user.getUsername(), true, null);
         return token;
     }
 
@@ -180,7 +184,4 @@ public class AuthServiceImpl implements AuthService {
         return AuthUserAssembler.assemble(user, roleCodes);
     }
 
-    private void recordAudit(Long userId, String username, Boolean success, String failureReason) {
-        authMapper.insertLoginAudit(userId, username, success, failureReason, TraceContext.getTraceId(), LocalDateTime.now());
-    }
 }
