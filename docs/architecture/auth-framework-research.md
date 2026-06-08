@@ -279,7 +279,214 @@ sys_role_permission
 
 这属于权限管理后台阶段，不是鉴权基础闭环阶段。
 
-## 7. 建议模块边界
+## 7. 前后端权限责任分布
+
+### 7.1 总体原则
+
+权限校验必须分成两层：
+
+```text
+前端权限校验：体验层，负责路由、菜单、按钮和交互状态
+后端权限校验：安全层，负责接口、业务动作、数据范围和审计
+```
+
+前端可以减少无效操作和错误跳转，但不能作为安全边界。所有真实权限判断必须以后端为准。
+
+统一规则：
+
+- 前端只消费后端返回的 `roles`、`permissions`、`dataScope`，不自行推导权限。
+- 后端负责签发、校验和解释权限，不信任前端传入的用户身份、角色、权限和数据范围。
+- 前后端共享权限码协议，但权限码的来源以后端为准。
+- 数据权限必须在后端 Service / Mapper 层收敛，前端只做展示范围控制。
+
+### 7.2 前端需要处理的权限
+
+前端使用 **Vue Router + Pinia + TypeScript** 做体验层权限控制。
+
+| 权限类型 | 前端处理内容 | 技术栈 | 处理方式 |
+| --- | --- | --- | --- |
+| 登录态 | 未登录不能进入受保护页面 | Vue Router、Pinia | 路由 `meta.requiresAuth` + 全局前置守卫 |
+| 路由权限 | 没权限不能进入特定页面 | Vue Router、Pinia | 路由 `meta.permissions` 声明页面所需权限 |
+| 菜单权限 | 没权限不展示入口 | Vue 组件、Pinia | 根据 `authStore.hasPermission()` 过滤菜单 |
+| 按钮权限 | 没权限隐藏或禁用按钮 | Vue 组件、Pinia | 根据权限码控制按钮渲染和 `disabled` |
+| 数据范围展示 | `self/all` 控制筛选项和视图入口 | Pinia、组件状态 | `self` 不展示“全部用户”筛选 |
+| 请求失败处理 | 处理后端 401 / 403 | API client、Pinia、Router | 401 清理登录态，403 展示无权限状态 |
+
+前端建议新增或补齐：
+
+```text
+frontend/src/
+├── api/
+│   ├── authApi.ts
+│   └── http.ts
+├── stores/
+│   └── authStore.ts
+├── router/
+│   └── index.ts
+├── types/
+│   └── auth.ts
+└── utils/
+    └── permission.ts
+```
+
+`authStore` 建议提供这些方法：
+
+```ts
+hasPermission(permission: string): boolean
+hasAnyPermission(permissions: string[]): boolean
+hasAllPermissions(permissions: string[]): boolean
+hasDataScope(scope: 'self' | 'all'): boolean
+ensureCurrentUser(): Promise<void>
+logout(): Promise<void>
+```
+
+路由声明示例：
+
+```ts
+{
+  path: '/settings',
+  component: SettingsView,
+  meta: {
+    requiresAuth: true,
+    permissions: ['settings:self:read']
+  }
+}
+```
+
+路由守卫处理逻辑：
+
+```text
+进入路由
+  -> 如果不需要登录，直接放行
+  -> 如果需要登录，先确保已加载 /api/auth/me
+  -> 未登录：跳转 /login，并记录 redirect
+  -> 权限不足：跳转 /403 或展示无权限页面
+  -> 权限满足：放行
+```
+
+前端禁止做：
+
+- 禁止根据角色自行推导权限，例如 `role === 'owner'` 就放行。
+- 禁止把前端路由权限当作接口安全边界。
+- 禁止让前端传 `userId`、`roleCode`、`dataScope` 来决定后端查询范围。
+- 禁止在按钮隐藏后省略后端权限校验。
+
+### 7.3 后端需要处理的权限
+
+后端使用 **Spring Security + Method Security + Service / BizService + MyBatis** 做安全层权限控制。
+
+| 权限类型 | 后端处理内容 | 技术栈 | 处理方式 |
+| --- | --- | --- | --- |
+| 认证校验 | Token 是否存在、合法、过期 | Spring Security FilterChain、JWT | 统一保护 `/api/**` |
+| 接口权限 | 用户是否能执行某类动作 | Spring Method Security | `@PreAuthorize("hasAuthority('tool:execute')")` |
+| 业务权限 | 当前资源状态和业务规则是否允许 | Service / BizService | 用例内判断，失败抛受控异常 |
+| 数据权限 | 用户能访问哪些数据 | Service / BizService、MyBatis | 按 `CurrentUser.dataScope` 追加查询条件 |
+| 审计 | 记录登录、失败、关键操作 | TraceID、审计表、日志 | 关联 `user_id`、`trace_id`、客户端信息 |
+| 异常响应 | 统一 401 / 403 / 业务错误 | GlobalExceptionHandler | 转换为 `ApiResponse<Integer code>` |
+
+后端推荐校验顺序：
+
+```text
+HTTP 请求
+  -> TraceIdFilter 写入 TraceID
+  -> Spring Security 校验 Access Token
+  -> Method Security 校验权限码
+  -> Service / BizService 校验业务规则
+  -> Mapper SQL 按数据范围收敛查询或更新条件
+  -> 统一响应 / 统一异常处理
+```
+
+接口权限示例：
+
+```java
+@PreAuthorize("hasAuthority('tool:execute')")
+```
+
+数据权限示例：
+
+```text
+查询工具执行历史
+  -> hasAuthority('history:read:self') 或 hasAuthority('history:read:all')
+  -> 如果 dataScope = self，Mapper 条件追加 user_id = currentUser.id
+  -> 如果 dataScope = all，允许按查询条件查看全部
+```
+
+后端禁止做：
+
+- 禁止信任前端传入的 `userId` 决定“我的数据”。
+- 禁止只在 Controller 做权限判断后让 Mapper 查询全部数据。
+- 禁止用字符串散落判断权限，权限码应收敛到枚举或常量。
+- 禁止把 Spring Security 异常直接暴露成默认 HTML 或不统一 JSON。
+
+### 7.4 前后端共享协议
+
+`/api/auth/me` 是前端权限体验的唯一可信输入来源。
+
+候选返回结构：
+
+```json
+{
+  "id": 1,
+  "username": "owner",
+  "displayName": "Owner",
+  "roles": ["owner"],
+  "permissions": ["tool:def:read", "tool:execute", "history:read:all"],
+  "dataScope": "all"
+}
+```
+
+协议约束：
+
+- `roles` 只用于展示身份和少量 UI 文案，不作为前端主要放行依据。
+- `permissions` 用于路由、菜单、按钮和交互入口判断。
+- `dataScope` 用于控制前端是否展示全局筛选项、全部历史入口等。
+- 后端可以返回权限摘要，但后端每次接口调用仍必须重新校验 Token 和权限。
+
+### 7.5 校验失败处理方案
+
+| 场景 | 后端 HTTP 状态 | 后端响应码 | 前端处理 |
+| --- | --- | --- | --- |
+| 未登录访问受保护接口 | `401` | `UNAUTHORIZED` | 清理登录态，跳转 `/login`，保留当前路由作为 redirect |
+| Access Token 过期 | `401` | `UNAUTHORIZED` | 尝试刷新 Token；刷新成功后重放原请求；失败则跳登录 |
+| Refresh Token 过期或被撤销 | `401` | `UNAUTHORIZED` | 清理登录态，跳转 `/login` |
+| 已登录但缺少权限码 | `403` | `FORBIDDEN` | 跳转 `/403` 或在当前区域展示无权限提示 |
+| 数据范围不允许访问资源 | `403` | `FORBIDDEN` | 展示无权限或数据不存在提示，不暴露资源详情 |
+| 业务规则不允许操作 | `200` 或业务约定 HTTP 状态 | 业务错误码 | 保持页面状态，展示业务错误文案 |
+| 登录账号或密码错误 | `200` 或 `401`，按接口约定统一 | 业务错误码或 `UNAUTHORIZED` | 登录页展示错误，不暴露账号是否存在 |
+| 连续登录失败触发限制 | `429` 或业务约定 HTTP 状态 | 限流错误码 | 展示稍后重试，禁用提交按钮一段时间 |
+
+第一阶段建议：
+
+- API 层仍保持统一 `ApiResponse<T>`。
+- 认证失败和授权失败在 HTTP 状态上使用 `401 / 403`，便于前端 HTTP client 统一拦截。
+- 业务失败继续使用统一业务响应码，避免把所有业务拒绝都混成 `403`。
+- 资源不存在和无权访问敏感资源时，可以统一返回无权限或不存在，避免泄露资源存在性。
+
+### 7.6 验收方式
+
+前端验收：
+
+```bash
+npm --prefix frontend run typecheck
+npm --prefix frontend run build
+```
+
+后端验收：
+
+```bash
+mvn -q test
+```
+
+权限场景验收应至少覆盖：
+
+- 未登录访问受保护路由，跳转登录。
+- `viewer` 看不到执行按钮，也无法通过接口执行工具。
+- `member` 只能查看自己的历史。
+- `owner` 可以查看全部历史和全局设置入口。
+- Access Token 过期后能刷新；刷新失败后回登录页。
+- 后端直接调用受保护接口时，缺权限返回统一 `403` JSON。
+
+## 8. 建议模块边界
 
 后续实现鉴权时，建议新增 `dtools-auth` 后端模块，不把鉴权代码堆进 `dtools-bootstrap` 或 `dtools-tools`。
 
@@ -328,7 +535,7 @@ dtools-tools 不依赖 dtools-auth
 - `dtools-tools` 不直接依赖鉴权模块。需要当前用户时，由 Controller 或应用服务把 `CurrentUser` 作为入参传入工具用例。
 - `dtools-common` 可以沉淀 `UnauthorizedException`、`AccessDeniedException`、统一响应码和 TraceID。
 
-## 8. API 候选契约
+## 9. API 候选契约
 
 当前文档只定义候选契约，正式 DTO 和 Controller 应在鉴权实现阶段再落地。
 
@@ -347,9 +554,9 @@ dtools-tools 不依赖 dtools-auth
 - `401 Unauthorized`：未登录、Access Token 缺失、Token 过期或非法。
 - `403 Forbidden`：已登录但权限不足。
 
-## 9. Token 与存储策略
+## 10. Token 与存储策略
 
-### 9.1 Access Token
+### 10.1 Access Token
 
 - 使用短有效期，建议第一阶段 15 到 30 分钟。
 - 通过 `Authorization: Bearer <access_token>` 调用后端 API。
@@ -357,14 +564,14 @@ dtools-tools 不依赖 dtools-auth
 - Token 中只放稳定且必要的身份摘要，例如 `sub`、`roles`、`permissions`、`iat`、`exp`、`jti`。
 - 不把密码、邮箱、昵称、配置等可变资料放进 Token。
 
-### 9.2 Refresh Token
+### 10.2 Refresh Token
 
 - 使用较长有效期，建议第一阶段 7 到 30 天。
 - Refresh Token 必须服务端可撤销，建议只存哈希值，不明文落库。
 - 每次刷新后建议轮换 Refresh Token，降低泄漏后的可用窗口。
 - 退出登录、修改密码、手动踢下线时撤销 Refresh Token。
 
-### 9.3 Web 存储
+### 10.3 Web 存储
 
 Web 版本优先推荐：
 
@@ -374,7 +581,7 @@ Web 版本优先推荐：
 
 不建议把长期 Token 放在 `localStorage` 中作为默认方案。
 
-### 9.4 macOS Tauri 存储
+### 10.4 macOS Tauri 存储
 
 macOS 客户端推荐：
 
@@ -384,11 +591,11 @@ macOS 客户端推荐：
 
 如果第一阶段还未接入 Keychain，可以先在开发环境使用临时存储，但必须在实现说明中标注为临时方案。
 
-## 10. 数据库候选设计
+## 11. 数据库候选设计
 
 以下只作为后续实现候选，不在当前调研阶段落入正式 schema。
 
-### 10.1 `sys_user`
+### 11.1 `sys_user`
 
 用于保存登录用户主数据。
 
@@ -402,7 +609,7 @@ macOS 客户端推荐：
 - `created_at`
 - `updated_at`
 
-### 10.2 `sys_user_role`
+### 11.2 `sys_user_role`
 
 用于保存用户和角色关系。第一阶段角色集合固定，角色权限映射可以先由后端枚举或配置维护。
 
@@ -413,7 +620,7 @@ macOS 客户端推荐：
 - `role_code`
 - `created_at`
 
-### 10.3 `auth_refresh_token`
+### 11.3 `auth_refresh_token`
 
 用于保存可撤销刷新凭证。
 
@@ -429,7 +636,7 @@ macOS 客户端推荐：
 - `created_at`
 - `last_used_at`
 
-### 10.4 `auth_login_audit`
+### 11.4 `auth_login_audit`
 
 用于记录登录和鉴权关键事件。
 
@@ -444,7 +651,7 @@ macOS 客户端推荐：
 - `trace_id`
 - `created_at`
 
-## 11. 前端集成边界
+## 12. 前端集成边界
 
 后续前端按现有分层新增：
 
@@ -472,7 +679,7 @@ frontend/src/
 
 macOS 的 `Command + ,` 配置弹窗仍属于偏好设置入口，不应混入登录凭证编辑。后续可以在设置弹窗展示当前登录用户、退出登录和 API Base URL，但长期凭证存储应由安全存储层处理。
 
-## 12. 分阶段落地建议
+## 13. 分阶段落地建议
 
 ### 阶段 1：应用内账号登录
 
@@ -535,18 +742,19 @@ npm --prefix frontend run build
 - 自建轻量授权服务：Spring Authorization Server。
 - 后端继续作为 OAuth2 Resource Server，主要负责校验外部签发的 Access Token。
 
-## 13. 风险与注意事项
+## 14. 风险与注意事项
 
 - 不要手写绕过 Spring Security FilterChain 的自定义鉴权拦截器，否则后续 Web 安全、方法权限和资源服务器能力会变得割裂。
 - 不要把 `enum.name()` 作为角色、权限或数据库稳定值。角色和权限编码应是明确字符串或数字 code，并写清含义。
 - 不要只用角色做业务判断。接口优先校验权限码，角色只作为权限集合来源。
 - 不要只在前端做数据权限过滤。历史、配置、审计等数据范围必须在后端 Service / Mapper 层收敛。
+- 不要让前端路由权限替代后端接口权限；前端只负责体验，后端才是安全边界。
 - 不要把 Refresh Token 明文落库。
 - 不要把长期凭证存入 Web `localStorage` 或普通 Tauri 配置文件。
 - 不要在 Access Token 中放过多用户资料，权限变化后短期 Token 仍可能保留旧权限。
 - 不要在第一阶段提前实现组织、租户、第三方登录、OAuth2 Client 注册等未确认能力。
 
-## 14. 参考资料
+## 15. 参考资料
 
 - Spring Security OAuth2 Resource Server JWT：https://docs.spring.io/spring-security/reference/6.5/servlet/oauth2/resource-server/jwt.html
 - Spring Security OAuth2 overview：https://docs.spring.io/spring-security/reference/6.5/servlet/oauth2/index.html
