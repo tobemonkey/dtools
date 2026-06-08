@@ -21,6 +21,7 @@
 
     <modules>
         <module>dtools-common</module>
+        <module>dtools-auth</module>
         <module>dtools-tools</module>
         <module>dtools-bootstrap</module>
     </modules>

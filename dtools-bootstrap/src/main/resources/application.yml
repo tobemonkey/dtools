@@ -14,3 +14,10 @@ mybatis:
   mapper-locations: classpath*:mapper/**/*.xml
   configuration:
     map-underscore-to-camel-case: true
+
+dtools:
+  auth:
+    issuer: dtools
+    jwt-secret: dtools-local-development-secret-change-me-32-bytes
+    access-token-seconds: 1800
+    refresh-token-seconds: 604800
