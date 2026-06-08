@@ -4,7 +4,7 @@ package com.dtools.auth.model.dto;
  * @description: 登录或刷新成功后的 Token 响应
  * @author: yesterday'jam
  * @date: 2026/06/08
- * @注意: refreshToken 仅为返回给客户端的明文，服务端只保存哈希
+ * @注意: refreshToken 明文返回仅用于阶段 1 开发闭环，长期 Web 应改为 HttpOnly Cookie，桌面端应交给系统安全存储
  */
 public class AuthTokenDTO {
 
@@ -14,7 +14,7 @@ public class AuthTokenDTO {
     private String accessToken;
 
     /**
-     * 长期刷新 Token。
+     * 长期刷新 Token，阶段 1 临时放在响应体中返回。
      */
     private String refreshToken;
 

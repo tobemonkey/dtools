@@ -16,3 +16,9 @@
 - [ ] 运行后端与前端验证命令
 - [ ] 启动前端并截图验证 UI
 - [ ] 更新交付说明，记录临时风险和建议切换 QA 新会话的输入清单
+
+## 后续安全演进待办
+
+- [ ] 将 Refresh Token 从 `AuthTokenDTO` 响应体迁移到环境化写出策略：Web 使用 `HttpOnly + Secure + SameSite` Cookie，Tauri 使用 Keychain / Windows Credential Manager 等系统安全存储。
+- [ ] 调整前端刷新流程：Web 模式不读取 refresh token 明文，只依赖 Cookie；Tauri 模式通过安全存储桥接 refresh token。
+- [ ] 评估 Cookie 模式下的 CSRF 策略、CORS 白名单和退出登录 Cookie 清理语义。
