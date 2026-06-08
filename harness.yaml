@@ -1,0 +1,68 @@
+# /Users/dtfughdfdemoy/Documents/dtools/harness.yaml
+# 核心使命：驱动个人工具平台以协议优先、可验证、可跨平台的方式演进
+
+project:
+  name: dtools
+  type: Personal-Toolbox-Desktop-And-Web
+  runtime:
+    backend: "Spring Boot 3.5.x + JDK 21"
+    frontend: "React + TypeScript + Vite"
+    database: "MySQL 8"
+    desktop: "Tauri 2 reserved"
+
+workflow_stages:
+  - id: stage_1_init
+    name: "环境初始化"
+    actions:
+      - "sync_global_context"
+      - "identify_task_type"
+      - "init_task_workspace"
+    next: stage_2_product_and_technical_analysis
+
+  - id: stage_2_product_and_technical_analysis
+    name: "产品与技术分析"
+    actions:
+      - "define_user_scenario"
+      - "define_api_contract"
+      - "define_mysql_ledger"
+      - "generate_analysis_md"
+    gate: "complex_task_requires_docs"
+    isolation: "产品探索阶段可共享上下文；本阶段结束后如进入架构设计，必须提示用户切换新会话并只携带冻结 PRD"
+    next: stage_3_decomposition
+
+  - id: stage_3_decomposition
+    name: "任务拆解"
+    actions:
+      - "generate_todo_md"
+      - "inject_mock_tasks"
+      - "define_acceptance_commands"
+    isolation: "架构与计划冻结后，进入编码实现前必须提示用户切换新会话或新工作上下文"
+    next: stage_4_atomic_coding
+
+  - id: stage_4_atomic_coding
+    name: "协议驱动编码"
+    strategy:
+      mode: "interface_first"
+      auto_commit: false
+    actions:
+      - "implement_backend_contract"
+      - "implement_frontend_workspace"
+      - "write_mock_or_unit_test"
+      - "run_acceptance_commands"
+    isolation: "代码阶段结束后，进入攻击测试 / QA 前必须提示用户切换新会话，默认只携带代码入口、测试入口和运行方式"
+    next: stage_5_qa_ship
+
+  - id: stage_5_qa_ship
+    name: "能力交付"
+    actions:
+      - "update_docs"
+      - "update_plan_status"
+      - "report_verification"
+
+action_definitions:
+  sync_global_context: "读取 AGENTS.md、PLANS.md、harness.yaml 和当前任务目录"
+  identify_task_type: "判定任务属于 Core、Tool、Frontend、Desktop、Docs 或 Fix"
+  define_api_contract: "先定义请求、响应、错误码和 TraceID 传递方式"
+  define_mysql_ledger: "确认 MySQL 8 主账本表、索引、状态字段和可回放信息"
+  run_acceptance_commands: "至少执行 Maven 编译或前端类型检查中的相关命令"
+  prompt_session_switch: "当阶段结束且下一阶段应隔离上下文时，提示用户切换新会话，并列出应携带的冻结产物和不应携带的历史讨论"
