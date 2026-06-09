@@ -1,5 +1,6 @@
 package com.dtools.bootstrap.advice;
 
+import com.dtools.common.enums.CommonErrorReason;
 import com.dtools.common.enums.ResponseCode;
 import com.dtools.common.exception.AccessDeniedException;
 import com.dtools.common.exception.ApplicationException;
@@ -35,10 +36,6 @@ public class GlobalExceptionHandler extends BaseExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    private static final String APPLICATION_ERROR_MESSAGE = "业务处理异常，请稍后重试";
-
-    private static final String SYSTEM_ERROR_MESSAGE = "系统异常，请稍后重试";
-
     /**
      * @description: 转换客户端可见异常
      * @author: yesterday'jam
@@ -60,7 +57,7 @@ public class GlobalExceptionHandler extends BaseExceptionHandler {
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<ApiResponse<Void>> handleApplicationException(ApplicationException exception, HttpServletRequest request) {
         logWarn(LOGGER, exception, request);
-        return failure(HttpStatus.BAD_REQUEST, exception.getResponseCode(), APPLICATION_ERROR_MESSAGE);
+        return failure(HttpStatus.BAD_REQUEST, exception.getResponseCode(), CommonErrorReason.APPLICATION_PROCESS_FAILED.getMessage());
     }
 
     /**
@@ -144,7 +141,8 @@ public class GlobalExceptionHandler extends BaseExceptionHandler {
             MethodArgumentTypeMismatchException exception,
             HttpServletRequest request) {
         logWarn(LOGGER, exception, request);
-        return failure(HttpStatus.BAD_REQUEST, ResponseCode.PARAM_ERROR, "参数类型错误: " + exception.getName());
+        return failure(HttpStatus.BAD_REQUEST, ResponseCode.PARAM_ERROR,
+                CommonErrorReason.PARAM_TYPE_MISMATCH.formatMessage(exception.getName()));
     }
 
     /**
@@ -158,7 +156,7 @@ public class GlobalExceptionHandler extends BaseExceptionHandler {
             HttpMessageNotReadableException exception,
             HttpServletRequest request) {
         logWarn(LOGGER, exception, request);
-        return failure(HttpStatus.BAD_REQUEST, ResponseCode.PARAM_ERROR, "请求体格式错误");
+        return failure(HttpStatus.BAD_REQUEST, ResponseCode.PARAM_ERROR, CommonErrorReason.REQUEST_BODY_INVALID.getMessage());
     }
 
     /**
@@ -170,7 +168,7 @@ public class GlobalExceptionHandler extends BaseExceptionHandler {
     @ExceptionHandler(SystemException.class)
     public ResponseEntity<ApiResponse<Void>> handleSystemException(SystemException exception, HttpServletRequest request) {
         logError(LOGGER, exception, request);
-        return failure(HttpStatus.INTERNAL_SERVER_ERROR, exception.getResponseCode(), SYSTEM_ERROR_MESSAGE);
+        return failure(HttpStatus.INTERNAL_SERVER_ERROR, exception.getResponseCode(), CommonErrorReason.SYSTEM_PROCESS_FAILED.getMessage());
     }
 
     /**
@@ -182,7 +180,7 @@ public class GlobalExceptionHandler extends BaseExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception exception, HttpServletRequest request) {
         logError(LOGGER, exception, request);
-        return failure(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.SYSTEM_ERROR, SYSTEM_ERROR_MESSAGE);
+        return failure(HttpStatus.INTERNAL_SERVER_ERROR, ResponseCode.SYSTEM_ERROR, CommonErrorReason.SYSTEM_PROCESS_FAILED.getMessage());
     }
 
     private ResponseEntity<ApiResponse<Void>> failure(HttpStatus httpStatus, ResponseCode responseCode, String message) {
