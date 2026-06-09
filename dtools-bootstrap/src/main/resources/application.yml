@@ -21,3 +21,13 @@ dtools:
     jwt-secret: dtools-local-development-secret-change-me-32-bytes
     access-token-seconds: 1800
     refresh-token-seconds: 604800
+  log:
+    request-detail:
+      enabled: false
+      async-enabled: true
+      include-query: true
+      include-body: false
+      max-body-length: 2000
+      queue-capacity: 10000
+      retention-days: 14
+      total-size-cap: 1GB

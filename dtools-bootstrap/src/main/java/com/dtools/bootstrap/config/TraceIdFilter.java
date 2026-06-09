@@ -10,6 +10,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 
@@ -25,6 +26,8 @@ public class TraceIdFilter extends OncePerRequestFilter {
 
     private static final String TRACE_ID_HEADER = "X-Trace-Id";
 
+    private static final String TRACE_ID_MDC_KEY = "traceId";
+
     /**
      * @description: 为请求设置 TraceID 并写回响应头
      * @author: yesterday'jam
@@ -39,10 +42,12 @@ public class TraceIdFilter extends OncePerRequestFilter {
             traceId = TraceIdGenerator.nextTraceId();
         }
         TraceContext.setTraceId(traceId);
+        MDC.put(TRACE_ID_MDC_KEY, traceId);
         response.setHeader(TRACE_ID_HEADER, traceId);
         try {
             filterChain.doFilter(request, response);
         } finally {
+            MDC.remove(TRACE_ID_MDC_KEY);
             TraceContext.clear();
         }
     }
