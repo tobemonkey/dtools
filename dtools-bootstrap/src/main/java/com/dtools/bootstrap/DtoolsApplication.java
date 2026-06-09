@@ -1,5 +1,6 @@
 package com.dtools.bootstrap;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -10,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @注意: 前端和 Tauri 通过 HTTP API 调用该服务，不在 Tauri 内承载后端业务
  */
 @SpringBootApplication(scanBasePackages = "com.dtools")
+@MapperScan("com.dtools.**.mapper")
 public class DtoolsApplication {
 
     /**
