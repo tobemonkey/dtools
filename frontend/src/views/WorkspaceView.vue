@@ -10,16 +10,19 @@
         <strong>dtools</strong>
         <span>personal tool space</span>
       </div>
-      <button class="settings-button" type="button" @click="settingsOpen = true">
-        设置 <kbd>⌘</kbd><kbd>,</kbd>
-      </button>
+      <div class="chrome-actions">
+        <UserBadge :user="authStore.currentUser" @logout="handleLogout" />
+        <button class="settings-button" type="button" @click="settingsOpen = true">
+          设置 <kbd>⌘</kbd><kbd>,</kbd>
+        </button>
+      </div>
     </header>
 
     <section class="board">
       <article class="widget profile">
-        <div class="avatar">dt</div>
-        <h1>Good Morning</h1>
-        <p>工具不多时，入口应该像个人空间，而不是后台菜单。</p>
+        <div class="avatar">{{ userInitials }}</div>
+        <h1>{{ greeting }}</h1>
+        <p>{{ profileCopy }}</p>
       </article>
 
       <article class="widget hero-card">
@@ -40,18 +43,31 @@
       </article>
     </section>
 
-    <SettingsDialog :open="settingsOpen" @close="settingsOpen = false" />
+    <SettingsDialog :open="settingsOpen" @close="settingsOpen = false" @logout="handleLogout" />
   </main>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import UserBadge from '../components/auth/UserBadge.vue'
 import CommandWidget from '../components/workspace/CommandWidget.vue'
 import SettingsDialog from '../components/settings/SettingsDialog.vue'
+import { useAuthStore } from '../stores/authStore'
 import { useHealthStore } from '../stores/healthStore'
 
 const settingsOpen = ref(false)
+const router = useRouter()
+const authStore = useAuthStore()
 const healthStore = useHealthStore()
+
+const displayName = computed(() => authStore.currentUser?.displayName || authStore.currentUser?.username || 'dtools')
+const userInitials = computed(() => displayName.value.slice(0, 2).toLowerCase())
+const greeting = computed(() => `Good Morning, ${displayName.value}`)
+const profileCopy = computed(() => {
+  const dataScope = authStore.currentUser?.dataScope || '-'
+  return `当前数据范围：${dataScope}。前端展示会跟随后端返回的权限摘要。`
+})
 
 function handleKeydown(event: KeyboardEvent) {
   if (event.metaKey && event.key === ',') {
@@ -62,6 +78,12 @@ function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
     settingsOpen.value = false
   }
+}
+
+async function handleLogout() {
+  await authStore.logout()
+  settingsOpen.value = false
+  await router.replace('/login')
 }
 
 onMounted(() => {

@@ -3,3 +3,10 @@ spring:
     url: jdbc:mysql://localhost:3306/dtools?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
     password:
+
+dtools:
+  auth:
+    issuer: dtools-local
+    jwt-secret: dtools-local-development-secret-change-me-32-bytes
+    access-token-seconds: 1800
+    refresh-token-seconds: 604800
