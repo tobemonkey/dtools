@@ -61,6 +61,6 @@ public enum DataScope {
         return Arrays.stream(values())
                 .filter(scope -> scope.code.equals(code))
                 .findFirst()
-                .orElseThrow(() -> new ApplicationException("未知数据范围: " + code));
+                .orElseThrow(() -> new ApplicationException(AuthErrorReason.UNKNOWN_DATA_SCOPE, code));
     }
 }

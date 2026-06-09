@@ -1,6 +1,7 @@
 package com.dtools.auth.token;
 
 import com.dtools.auth.config.AuthProperties;
+import com.dtools.auth.enums.AuthErrorReason;
 import com.dtools.auth.model.dto.CurrentUserDTO;
 import com.dtools.common.exception.ApplicationException;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -57,7 +58,7 @@ public class JwtTokenService {
                     claims
             )).getTokenValue();
         } catch (RuntimeException exception) {
-            throw new ApplicationException("签发访问令牌失败", exception);
+            throw new ApplicationException(AuthErrorReason.ACCESS_TOKEN_ISSUE_FAILED, exception);
         }
     }
 

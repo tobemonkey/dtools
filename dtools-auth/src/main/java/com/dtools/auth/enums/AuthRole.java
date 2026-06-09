@@ -66,6 +66,6 @@ public enum AuthRole {
         return Arrays.stream(values())
                 .filter(role -> role.code.equals(code))
                 .findFirst()
-                .orElseThrow(() -> new ApplicationException("未知角色编码: " + code));
+                .orElseThrow(() -> new ApplicationException(AuthErrorReason.UNKNOWN_ROLE_CODE, code));
     }
 }
