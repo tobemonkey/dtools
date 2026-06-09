@@ -61,6 +61,6 @@ public enum UserStatus {
         return Arrays.stream(values())
                 .filter(status -> status.code.equals(code))
                 .findFirst()
-                .orElseThrow(() -> new ApplicationException("未知用户状态: " + code));
+                .orElseThrow(() -> new ApplicationException(AuthErrorReason.UNKNOWN_USER_STATUS, code));
     }
 }

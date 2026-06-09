@@ -1,6 +1,7 @@
 package com.dtools.auth.service.impl;
 
 import com.dtools.auth.config.AuthProperties;
+import com.dtools.auth.enums.AuthErrorReason;
 import com.dtools.auth.enums.UserStatus;
 import com.dtools.auth.mapper.AuthMapper;
 import com.dtools.auth.model.command.LoginCommand;
@@ -33,8 +34,6 @@ import java.util.List;
 public class AuthServiceImpl implements AuthService {
 
     private static final String TOKEN_TYPE = "Bearer";
-
-    private static final String LOGIN_FAILED_MESSAGE = "用户名或密码错误";
 
     private final AuthMapper authMapper;
 
@@ -73,12 +72,12 @@ public class AuthServiceImpl implements AuthService {
     public AuthTokenDTO login(LoginCommand command) {
         AuthUserEntity user = authMapper.findUserByUsername(command.getUsername());
         if (user == null || !passwordEncoder.matches(command.getPassword(), user.getPasswordHash())) {
-            authAuditService.recordLoginAudit(null, command.getUsername(), false, LOGIN_FAILED_MESSAGE);
-            throw new AuthenticationException(LOGIN_FAILED_MESSAGE);
+            authAuditService.recordLoginAudit(null, command.getUsername(), false, AuthErrorReason.LOGIN_FAILED.getMessage());
+            throw new AuthenticationException(AuthErrorReason.LOGIN_FAILED);
         }
         if (!UserStatus.ENABLED.getCode().equals(user.getStatus())) {
-            authAuditService.recordLoginAudit(user.getId(), user.getUsername(), false, "账号已禁用");
-            throw new AuthenticationException("账号已禁用");
+            authAuditService.recordLoginAudit(user.getId(), user.getUsername(), false, AuthErrorReason.ACCOUNT_DISABLED.getMessage());
+            throw new AuthenticationException(AuthErrorReason.ACCOUNT_DISABLED);
         }
         CurrentUserDTO currentUser = buildCurrentUser(user);
         AuthTokenDTO token = issueTokenPair(currentUser);
@@ -99,19 +98,19 @@ public class AuthServiceImpl implements AuthService {
         LocalDateTime now = LocalDateTime.now();
         AuthRefreshTokenEntity oldToken = authMapper.findActiveRefreshTokenByHash(oldHash, now);
         if (oldToken == null) {
-            throw new AuthenticationException("刷新凭证无效或已过期");
+            throw new AuthenticationException(AuthErrorReason.REFRESH_TOKEN_INVALID_OR_EXPIRED);
         }
         AuthUserEntity user = authMapper.findUserById(oldToken.getUserId());
         if (user == null || !UserStatus.ENABLED.getCode().equals(user.getStatus())) {
             authMapper.revokeRefreshToken(oldHash, now, now, null);
-            throw new AuthenticationException("刷新凭证无效或已过期");
+            throw new AuthenticationException(AuthErrorReason.REFRESH_TOKEN_INVALID_OR_EXPIRED);
         }
         CurrentUserDTO currentUser = buildCurrentUser(user);
         String refreshToken = refreshTokenService.generateToken();
         String refreshTokenHash = refreshTokenService.hashToken(refreshToken);
         int revokedRows = authMapper.revokeRefreshToken(oldHash, now, now, refreshTokenHash);
         if (revokedRows != 1) {
-            throw new AuthenticationException("刷新凭证无效或已过期");
+            throw new AuthenticationException(AuthErrorReason.REFRESH_TOKEN_INVALID_OR_EXPIRED);
         }
         insertRefreshToken(currentUser.getId(), refreshTokenHash, now);
         return buildTokenResponse(currentUser, refreshToken);
@@ -144,7 +143,7 @@ public class AuthServiceImpl implements AuthService {
     public CurrentUserDTO me(Long userId) {
         AuthUserEntity user = authMapper.findUserById(userId);
         if (user == null || !UserStatus.ENABLED.getCode().equals(user.getStatus())) {
-            throw new AuthenticationException("认证用户不存在或已禁用");
+            throw new AuthenticationException(AuthErrorReason.CURRENT_USER_INVALID);
         }
         return buildCurrentUser(user);
     }
@@ -179,7 +178,7 @@ public class AuthServiceImpl implements AuthService {
     private CurrentUserDTO buildCurrentUser(AuthUserEntity user) {
         List<String> roleCodes = authMapper.findRoleCodesByUserId(user.getId());
         if (roleCodes == null || roleCodes.isEmpty()) {
-            throw new AuthenticationException("账号未分配角色");
+            throw new AuthenticationException(AuthErrorReason.ROLE_NOT_ASSIGNED);
         }
         return AuthUserAssembler.assemble(user, roleCodes);
     }

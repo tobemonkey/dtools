@@ -1,5 +1,6 @@
 package com.dtools.common.exception;
 
+import com.dtools.common.enums.ErrorReason;
 import com.dtools.common.enums.ResponseCode;
 
 /**
@@ -14,8 +15,20 @@ public class ApplicationException extends BizException {
         super(ResponseCode.APPLICATION_ERROR, message);
     }
 
+    public ApplicationException(ErrorReason errorReason) {
+        super(errorReason);
+    }
+
+    public ApplicationException(ErrorReason errorReason, Object... messageArgs) {
+        super(errorReason, messageArgs);
+    }
+
     public ApplicationException(String message, Throwable cause) {
         super(ResponseCode.APPLICATION_ERROR, message, cause);
+    }
+
+    public ApplicationException(ErrorReason errorReason, Throwable cause) {
+        super(errorReason, cause);
     }
 
     public ApplicationException(ResponseCode responseCode, String message) {

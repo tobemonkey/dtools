@@ -1,5 +1,6 @@
 package com.dtools.auth.token;
 
+import com.dtools.auth.enums.AuthErrorReason;
 import com.dtools.common.exception.ApplicationException;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +48,7 @@ public class RefreshTokenService {
             byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(hash);
         } catch (NoSuchAlgorithmException exception) {
-            throw new ApplicationException("当前运行环境不支持 SHA-256", exception);
+            throw new ApplicationException(AuthErrorReason.SHA256_UNSUPPORTED, exception);
         }
     }
 }

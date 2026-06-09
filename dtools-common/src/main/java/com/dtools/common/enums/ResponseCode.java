@@ -84,6 +84,6 @@ public enum ResponseCode {
                 return responseCode;
             }
         }
-        throw new IllegalArgumentException("未知响应码: " + code);
+        throw new IllegalArgumentException(CommonErrorReason.UNKNOWN_RESPONSE_CODE.formatMessage(code));
     }
 }

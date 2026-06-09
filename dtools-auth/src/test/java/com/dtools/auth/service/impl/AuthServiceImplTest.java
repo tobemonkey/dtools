@@ -1,6 +1,7 @@
 package com.dtools.auth.service.impl;
 
 import com.dtools.auth.config.AuthProperties;
+import com.dtools.auth.enums.AuthErrorReason;
 import com.dtools.auth.enums.AuthRole;
 import com.dtools.auth.enums.UserStatus;
 import com.dtools.auth.mapper.AuthMapper;
@@ -78,7 +79,7 @@ class AuthServiceImplTest {
 
         assertThatThrownBy(() -> authService.refresh(command))
                 .isInstanceOf(AuthenticationException.class)
-                .hasMessageContaining("刷新凭证无效或已过期");
+                .hasMessageContaining(AuthErrorReason.REFRESH_TOKEN_INVALID_OR_EXPIRED.getMessage());
 
         verify(authMapper, never()).insertRefreshToken(any(AuthRefreshTokenEntity.class));
         verify(jwtTokenService, never()).issueAccessToken(any());
@@ -139,9 +140,9 @@ class AuthServiceImplTest {
 
         assertThatThrownBy(() -> authService.login(command))
                 .isInstanceOf(AuthenticationException.class)
-                .hasMessageContaining("用户名或密码错误");
+                .hasMessageContaining(AuthErrorReason.LOGIN_FAILED.getMessage());
 
-        verify(authAuditService).recordLoginAudit(null, "missing", false, "用户名或密码错误");
+        verify(authAuditService).recordLoginAudit(null, "missing", false, AuthErrorReason.LOGIN_FAILED.getMessage());
         verify(authMapper, never()).insertLoginAudit(any(), anyString(), any(), anyString(), any(), any());
     }
 }

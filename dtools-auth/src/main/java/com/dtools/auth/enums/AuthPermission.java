@@ -65,6 +65,6 @@ public enum AuthPermission {
         return Arrays.stream(values())
                 .filter(permission -> permission.code.equals(code))
                 .findFirst()
-                .orElseThrow(() -> new ApplicationException("未知权限码: " + code));
+                .orElseThrow(() -> new ApplicationException(AuthErrorReason.UNKNOWN_PERMISSION_CODE, code));
     }
 }
