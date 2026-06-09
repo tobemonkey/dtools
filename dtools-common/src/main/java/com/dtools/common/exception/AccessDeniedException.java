@@ -1,5 +1,6 @@
 package com.dtools.common.exception;
 
+import com.dtools.common.enums.ErrorReason;
 import com.dtools.common.enums.ResponseCode;
 
 /**
@@ -12,5 +13,9 @@ public class AccessDeniedException extends ClientException {
 
     public AccessDeniedException(String message) {
         super(ResponseCode.FORBIDDEN, message);
+    }
+
+    public AccessDeniedException(ErrorReason errorReason) {
+        super(errorReason);
     }
 }

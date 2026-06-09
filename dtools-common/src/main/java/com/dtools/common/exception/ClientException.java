@@ -1,5 +1,6 @@
 package com.dtools.common.exception;
 
+import com.dtools.common.enums.ErrorReason;
 import com.dtools.common.enums.ResponseCode;
 
 /**
@@ -12,6 +13,14 @@ public class ClientException extends BizException {
 
     public ClientException(String message) {
         super(ResponseCode.CLIENT_ERROR, message);
+    }
+
+    public ClientException(ErrorReason errorReason) {
+        super(errorReason);
+    }
+
+    public ClientException(ErrorReason errorReason, Object... messageArgs) {
+        super(errorReason, messageArgs);
     }
 
     public ClientException(ResponseCode responseCode, String message) {

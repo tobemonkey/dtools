@@ -1,5 +1,6 @@
 package com.dtools.common.exception;
 
+import com.dtools.common.enums.ErrorReason;
 import com.dtools.common.enums.ResponseCode;
 
 /**
@@ -12,5 +13,13 @@ public class AuthenticationException extends ClientException {
 
     public AuthenticationException(String message) {
         super(ResponseCode.UNAUTHORIZED, message);
+    }
+
+    public AuthenticationException(ErrorReason errorReason) {
+        super(errorReason);
+    }
+
+    public AuthenticationException(ErrorReason errorReason, Object... messageArgs) {
+        super(errorReason, messageArgs);
     }
 }
