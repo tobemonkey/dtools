@@ -309,15 +309,53 @@ kbd {
 
 .segment-clock {
   height: 100%;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 36px;
   color: #334f52;
   background: rgba(123, 136, 142, 0.14);
   font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
-  font-size: 56px;
+  font-size: 54px;
   font-weight: 900;
   letter-spacing: 3px;
+  white-space: nowrap;
+}
+
+.clock-second-wrap {
+  max-width: 0;
+  display: inline-flex;
+  align-items: baseline;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-10px) scale(0.92);
+  transform-origin: left center;
+  transition:
+    max-width 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease,
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.clock-card:hover .clock-second-wrap,
+.clock-card:focus-within .clock-second-wrap {
+  max-width: 82px;
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+.clock-second-colon,
+.clock-seconds {
+  color: rgba(51, 79, 82, 0.72);
+  font-size: 30px;
+  letter-spacing: 1px;
+}
+
+.clock-second-colon {
+  margin-left: 3px;
+}
+
+.clock-seconds {
+  min-width: 38px;
 }
 
 .calendar-card {
@@ -883,7 +921,17 @@ kbd {
 
   .segment-clock {
     min-height: 104px;
-    font-size: 48px;
+    font-size: 46px;
+  }
+
+  .clock-card:hover .clock-second-wrap,
+  .clock-card:focus-within .clock-second-wrap {
+    max-width: 74px;
+  }
+
+  .clock-second-colon,
+  .clock-seconds {
+    font-size: 27px;
   }
 
   .user-badge {

@@ -38,7 +38,13 @@
       <CommandWidget class="command-card animate-card" style="--order: 6; --hover-x: 0px; --hover-y: -4px" />
 
       <article class="home-card clock-card animate-card" style="--order: 3; --hover-x: 0px; --hover-y: -4px">
-        <div class="segment-clock" aria-label="当前时间">{{ currentTime }}</div>
+        <div class="segment-clock" :aria-label="`当前时间 ${currentTimeWithSeconds}`">
+          <span>{{ currentTime }}</span>
+          <span class="clock-second-wrap" aria-hidden="true">
+            <span class="clock-second-colon">:</span>
+            <span class="clock-seconds">{{ currentSeconds }}</span>
+          </span>
+        </div>
       </article>
 
       <article class="home-card calendar-card animate-card" style="--order: 4; --hover-x: 0px; --hover-y: -4px">
@@ -139,6 +145,8 @@ const currentTime = computed(() => {
   const minutes = now.value.getMinutes().toString().padStart(2, '0')
   return `${hours}:${minutes}`
 })
+const currentSeconds = computed(() => now.value.getSeconds().toString().padStart(2, '0'))
+const currentTimeWithSeconds = computed(() => `${currentTime.value}:${currentSeconds.value}`)
 const todayDate = computed(() => now.value.getDate())
 const todayLabel = computed(() => {
   const year = now.value.getFullYear()
@@ -173,7 +181,7 @@ onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
   clockTimer = window.setInterval(() => {
     now.value = new Date()
-  }, 5000)
+  }, 1000)
 })
 
 onUnmounted(() => {
