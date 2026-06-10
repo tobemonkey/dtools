@@ -23,7 +23,7 @@ import java.util.List;
  * @注意: 该控制器位于 /api/** 受保护安全链下，调用方必须携带有效 Bearer Token
  */
 @RestController
-@RequestMapping("/api/monitor/api")
+@RequestMapping("/monitor")
 public class ApiMonitorController {
 
     private final ApiMonitorService apiMonitorService;
