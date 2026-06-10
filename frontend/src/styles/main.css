@@ -39,7 +39,9 @@ kbd {
 }
 
 .workspace {
+  position: relative;
   min-height: 100vh;
+  overflow: auto;
   padding: 22px;
   background:
     radial-gradient(circle at 15% 18%, rgba(116, 211, 231, 0.5), transparent 30%),
@@ -47,18 +49,420 @@ kbd {
     linear-gradient(135deg, #eefbff 0%, #fffaf0 46%, #eef9f3 100%);
 }
 
-.chrome,
-.board,
+.home-background {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bubble {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(3px);
+  opacity: 0.86;
+  animation: bubble-float 11s ease-in-out infinite alternate;
+}
+
+.bubble-cyan {
+  width: 420px;
+  height: 320px;
+  left: 7vw;
+  top: 9vh;
+  background: radial-gradient(circle, rgba(114, 215, 233, 0.64), transparent 68%);
+}
+
+.bubble-gold {
+  width: 430px;
+  height: 300px;
+  right: 8vw;
+  top: 7vh;
+  background: radial-gradient(circle, rgba(255, 224, 145, 0.74), transparent 70%);
+  animation-delay: -3s;
+}
+
+.bubble-mint {
+  width: 520px;
+  height: 340px;
+  right: 9vw;
+  bottom: 8vh;
+  background: radial-gradient(circle, rgba(191, 243, 220, 0.7), transparent 70%);
+  animation-delay: -6s;
+}
+
+.home-stage {
+  position: relative;
+  z-index: 1;
+  width: min(1068px, calc(100vw - 44px));
+  min-height: calc(100vh - 92px);
+  display: grid;
+  grid-template-columns: 248px 414px 296px;
+  grid-template-areas:
+    "nav hi clock"
+    "nav hi calendar"
+    "social command health"
+    "history protocol health";
+  grid-template-rows: 132px 274px 160px 96px;
+  justify-content: center;
+  align-content: center;
+  gap: 24px 38px;
+  margin: 30px auto 0;
+  padding-bottom: 92px;
+}
+
+.home-card,
+.command-widget {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 40px 50px -32px rgba(55, 68, 78, 0.16),
+    inset 0 0 20px rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(18px);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.home-card {
+  padding: 24px;
+  border-radius: 42px;
+}
+
+.home-card:hover,
+.command-widget:hover,
+.social-buttons button:hover,
+.settings-button:hover {
+  transform: translate(var(--hover-x, 0), var(--hover-y, 0)) scale(1.035);
+}
+
+.home-card:active,
+.command-widget:active,
+.social-buttons button:active,
+.settings-button:active {
+  transform: translate(var(--hover-x, 0), var(--hover-y, 0)) scale(0.98);
+}
+
+.animate-card {
+  opacity: 0;
+  transform: translateY(18px) scale(0.72);
+  animation: card-pop 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--order) * 90ms);
+}
+
+.nav-card {
+  grid-area: nav;
+  width: 248px;
+  min-height: 430px;
+  align-self: center;
+}
+
+.nav-brand {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  color: #334f52;
+  background: transparent;
+  text-align: left;
+}
+
+.nav-brand strong,
+.nav-brand small {
+  display: block;
+}
+
+.nav-brand strong {
+  font-size: 25px;
+  line-height: 1;
+}
+
+.nav-brand small {
+  margin-top: 5px;
+  color: #35bfab;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.nav-section {
+  margin: 34px 0 12px;
+  color: #7b888e;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.home-nav {
+  position: relative;
+  display: grid;
+  gap: 8px;
+}
+
+.home-nav button {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 999px;
+  padding: 0 16px;
+  color: #7b888e;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 750;
+  text-align: left;
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.home-nav button:hover,
+.home-nav button.active {
+  color: #334f52;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.38));
+  transform: translateX(3px);
+}
+
+.nav-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(51, 79, 82, 0.08);
+  color: #35bfab;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.hi-card {
+  grid-area: hi;
+  width: 414px;
+  height: 322px;
+  align-self: center;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  text-align: center;
+}
+
+.hi-avatar,
+.avatar {
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #60c7d5, #6a7df4);
+  font-weight: 900;
+  text-transform: lowercase;
+  box-shadow: 0 16px 32px -8px rgba(96, 199, 213, 0.54);
+}
+
+.hi-avatar {
+  width: 116px;
+  height: 116px;
+  border-radius: 999px;
+  font-size: 38px;
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.hi-card h1 {
+  margin: 18px 0 0;
+  color: #334f52;
+  font-size: 29px;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.hi-card h1 span {
+  background: linear-gradient(135deg, #35bfab, #1fc9e7 56%, #eec25e);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hi-card p,
+.mini-card p,
+.health-card p {
+  color: #7b888e;
+}
+
+.hi-card p {
+  width: min(310px, 100%);
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.clock-card {
+  grid-area: clock;
+  width: 296px;
+  height: 132px;
+  padding: 10px;
+}
+
+.segment-clock {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border-radius: 36px;
+  color: #334f52;
+  background: rgba(123, 136, 142, 0.14);
+  font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
+  font-size: 56px;
+  font-weight: 900;
+  letter-spacing: 3px;
+}
+
+.calendar-card {
+  grid-area: calendar;
+  width: 296px;
+  min-height: 274px;
+}
+
+.calendar-card h2 {
+  margin: 0 0 18px;
+  color: #7b888e;
+  font-size: 14px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #7b888e;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.calendar-grid li {
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+}
+
+.calendar-grid .weekday {
+  color: #35bfab;
+}
+
+.calendar-grid .today {
+  color: #fff;
+  background: linear-gradient(135deg, #35bfab, #1fc9e7);
+}
+
+.command-widget {
+  grid-area: command;
+  width: 100%;
+  min-height: 160px;
+  padding: 28px;
+  border-radius: 42px;
+}
+
+.health-card {
+  grid-area: health;
+  width: 100%;
+  min-height: 280px;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+
+.health-card h2,
+.mini-card h2 {
+  margin: 0;
+  color: #334f52;
+  font-size: 19px;
+}
+
+.health-card p,
+.mini-card p {
+  margin: 14px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.health-card button {
+  margin-top: auto;
+}
+
+.social-buttons {
+  grid-area: social;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 12px;
+}
+
+.social-buttons button {
+  min-width: 72px;
+  height: 50px;
+  flex: 1 1 72px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 18px;
+  padding: 0 18px;
+  color: #334f52;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 20px 34px -26px rgba(55, 68, 78, 0.24),
+    inset 0 0 12px rgba(255, 255, 255, 0.24);
+  font-weight: 850;
+  backdrop-filter: blur(18px);
+  transition: transform 180ms ease;
+}
+
+.mini-card {
+  width: 100%;
+  min-height: 96px;
+  border-radius: 32px;
+}
+
+.history-card {
+  grid-area: history;
+}
+
+.protocol-card {
+  grid-area: protocol;
+}
+
+.floating-chrome,
 .settings-dialog {
   width: min(1180px, calc(100vw - 44px));
   margin: 0 auto;
 }
 
-.chrome {
-  height: 64px;
+.floating-chrome {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 10;
+  width: auto;
+  min-height: 58px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 999px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 24px 60px rgba(55, 68, 78, 0.14);
+  backdrop-filter: blur(20px);
+  transform: translateX(-50%);
+}
+
+.floating-chrome.animate-card {
+  transform: translateX(-50%) translateY(18px) scale(0.72);
+  animation-name: chrome-pop;
 }
 
 .brand,
@@ -95,6 +499,7 @@ kbd {
   padding: 0 14px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.68);
+  transition: transform 180ms ease;
 }
 
 .chrome-actions {
@@ -142,52 +547,6 @@ kbd {
   background: rgba(31, 35, 41, 0.07);
 }
 
-.board {
-  display: grid;
-  grid-template-columns: 0.95fr 1.3fr 1fr;
-  gap: 18px;
-}
-
-.widget,
-.command-widget {
-  min-height: 220px;
-  padding: 28px;
-  border-radius: 34px;
-  background: rgba(255, 255, 255, 0.58);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.74), 0 24px 70px rgba(55, 68, 78, 0.14);
-  backdrop-filter: blur(20px);
-}
-
-.avatar,
-.orb {
-  width: 72px;
-  height: 72px;
-  display: grid;
-  place-items: center;
-  border-radius: 24px;
-  color: #fff;
-  background: linear-gradient(135deg, #60c7d5, #6a7df4);
-  font-size: 24px;
-  font-weight: 800;
-}
-
-.hero-card {
-  text-align: center;
-}
-
-.hero-card .orb {
-  margin: 0 auto 16px;
-}
-
-.hero-card span {
-  color: #1b99a4;
-}
-
-.command-widget {
-  grid-column: 1 / 3;
-  min-height: 150px;
-}
-
 .eyebrow {
   margin: 0 0 10px;
   color: rgba(31, 35, 41, 0.48);
@@ -219,6 +578,40 @@ kbd {
   background: linear-gradient(135deg, #18a7b6, #6672ef);
 }
 
+@keyframes card-pop {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.72);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes chrome-pop {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(18px) scale(0.72);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes bubble-float {
+  from {
+    transform: translate3d(-10px, -6px, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(16px, 14px, 0) scale(1.05);
+  }
+}
+
 .command-row button:disabled,
 .login-form button:disabled {
   cursor: not-allowed;
@@ -232,22 +625,22 @@ kbd {
   font-size: 12px;
 }
 
-.health-card {
-  min-height: 150px;
-}
-
 .settings-backdrop {
   position: fixed;
   inset: 0;
+  z-index: 100;
   display: grid;
   place-items: center;
   padding: 24px;
+  overflow-y: auto;
   background: rgba(17, 27, 38, 0.22);
   backdrop-filter: blur(18px);
 }
 
 .settings-dialog {
+  width: min(820px, 100%);
   max-width: 820px;
+  max-height: calc(100vh - 48px);
   overflow: hidden;
   border-radius: 34px;
   background: rgba(255, 255, 255, 0.82);
@@ -403,26 +796,94 @@ kbd {
 }
 
 @media (max-width: 860px) {
-  .chrome {
-    height: auto;
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 14px;
+  .workspace {
+    overflow: auto;
+    padding-bottom: 116px;
   }
 
-  .chrome-actions {
+  .home-stage {
+    width: min(420px, calc(100vw - 36px));
+    height: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 96px;
+  }
+
+  .home-card,
+  .command-widget,
+  .nav-card,
+  .hi-card,
+  .clock-card,
+  .calendar-card,
+  .health-card,
+  .mini-card,
+  .history-card,
+  .protocol-card {
+    position: static;
     width: 100%;
+    height: auto;
+    min-height: 0;
+  }
+
+  .nav-card {
+    order: 1;
+  }
+
+  .hi-card {
+    order: 2;
+  }
+
+  .clock-card {
+    order: 3;
+  }
+
+  .calendar-card {
+    order: 4;
+  }
+
+  .command-widget {
+    order: 5;
+  }
+
+  .health-card {
+    order: 6;
+  }
+
+  .history-card {
+    order: 7;
+  }
+
+  .protocol-card {
+    order: 8;
+  }
+
+  .social-buttons {
+    position: static;
+    order: 9;
+    flex-wrap: wrap;
+  }
+
+  .social-buttons button {
+    flex: 1 1 120px;
+  }
+
+  .floating-chrome {
+    top: 18px;
+    bottom: auto;
+    width: min(420px, calc(100vw - 36px));
     justify-content: space-between;
   }
 
-  .board,
   .settings-grid,
   .command-row {
     grid-template-columns: 1fr;
   }
 
-  .command-widget {
-    grid-column: auto;
+  .segment-clock {
+    min-height: 104px;
+    font-size: 48px;
   }
 
   .user-badge {
@@ -431,15 +892,36 @@ kbd {
 }
 
 @media (max-width: 560px) {
-  .chrome-actions,
   .forbidden-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .floating-chrome {
+    align-items: stretch;
+    flex-direction: column;
+    border-radius: 28px;
+  }
+
+  .traffic {
+    justify-content: center;
   }
 
   .settings-button,
   .user-badge {
     width: 100%;
     justify-content: center;
+  }
+
+  .home-stage {
+    margin-top: 176px;
+  }
+
+  .hi-card h1 {
+    font-size: 25px;
+  }
+
+  .command-row input {
+    font-size: 20px;
   }
 }
