@@ -1,4 +1,4 @@
-package com.dtools.bootstrap.logging;
+package com.dtools.bootstrap.logging.sanitize;
 
 import com.dtools.common.log.LogSensitive;
 import com.fasterxml.jackson.databind.JsonNode;

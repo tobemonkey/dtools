@@ -1,6 +1,6 @@
 package com.dtools.bootstrap.mapper;
 
-import com.dtools.bootstrap.logging.ApiRequestLogEvent;
+import com.dtools.bootstrap.logging.event.ApiRequestLogEvent;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -20,4 +20,3 @@ public interface ApiRequestLogMapper {
      */
     int insert(ApiRequestLogEvent event);
 }
-

@@ -1,4 +1,4 @@
-package com.dtools.bootstrap.logging;
+package com.dtools.bootstrap.logging.context;
 
 /**
  * @description: 日志系统请求属性常量，统一在 Filter 和异常处理器之间传递诊断上下文

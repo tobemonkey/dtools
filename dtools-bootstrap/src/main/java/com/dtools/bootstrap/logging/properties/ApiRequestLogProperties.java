@@ -1,4 +1,4 @@
-package com.dtools.bootstrap.logging;
+package com.dtools.bootstrap.logging.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

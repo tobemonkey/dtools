@@ -1,5 +1,7 @@
-package com.dtools.bootstrap.logging;
+package com.dtools.bootstrap.logging.writer;
 
+import com.dtools.bootstrap.logging.event.ApiRequestLogEvent;
+import com.dtools.bootstrap.logging.properties.ApiRequestLogProperties;
 import com.dtools.bootstrap.mapper.ApiRequestLogMapper;
 import org.junit.jupiter.api.Test;
 
@@ -43,4 +45,3 @@ class ApiRequestLogDbWriterTest {
         verify(mapper).insert(event);
     }
 }
-

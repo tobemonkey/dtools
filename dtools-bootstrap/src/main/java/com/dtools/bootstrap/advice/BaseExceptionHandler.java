@@ -1,7 +1,7 @@
 package com.dtools.bootstrap.advice;
 
 import jakarta.servlet.http.HttpServletRequest;
-import com.dtools.bootstrap.logging.LoggingRequestAttributes;
+import com.dtools.bootstrap.logging.context.LoggingRequestAttributes;
 import org.slf4j.Logger;
 
 /**
