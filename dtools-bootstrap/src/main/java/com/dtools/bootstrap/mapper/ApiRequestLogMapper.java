@@ -10,7 +10,6 @@ import com.dtools.bootstrap.monitor.model.ApiMonitorRecentErrorDTO;
 import com.dtools.bootstrap.monitor.model.ApiMonitorSlowEndpointDTO;
 import com.dtools.bootstrap.monitor.model.ApiMonitorStatusItemDTO;
 import com.dtools.bootstrap.monitor.model.ApiMonitorTrendPointDTO;
-import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
@@ -31,17 +30,6 @@ public interface ApiRequestLogMapper {
      * @date: 2026/06/10
      * @注意: 写入失败必须由调用方吞掉，不能影响接口主流程
      */
-    @Insert("""
-            insert into api_request_log (
-                trace_id, user_id, username, method, uri, client_ip, user_agent,
-                http_status, response_code, cost_ms, exception_type, exception_message,
-                exception_stack, request_params_on_error
-            ) values (
-                #{traceId}, #{userId}, #{username}, #{method}, #{uri}, #{clientIp}, #{userAgent},
-                #{httpStatus}, #{responseCode}, #{costMs}, #{exceptionType}, #{exceptionMessage},
-                #{exceptionStack}, #{requestParamsOnError}
-            )
-            """)
     int insert(ApiRequestLogEvent event);
 
     /**
