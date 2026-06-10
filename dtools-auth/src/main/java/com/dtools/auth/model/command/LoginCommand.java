@@ -1,5 +1,7 @@
 package com.dtools.auth.model.command;
 
+import com.dtools.common.log.LogSensitive;
+import com.dtools.common.log.SensitiveStrategy;
 import jakarta.validation.constraints.NotBlank;
 
 /**
@@ -19,6 +21,7 @@ public class LoginCommand {
     /**
      * 登录密码明文，仅在请求内短暂存在。
      */
+    @LogSensitive(strategy = SensitiveStrategy.MASK)
     @NotBlank(message = "密码不能为空")
     private String password;
 

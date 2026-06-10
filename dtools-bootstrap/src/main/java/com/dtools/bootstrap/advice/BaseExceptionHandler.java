@@ -1,6 +1,7 @@
 package com.dtools.bootstrap.advice;
 
 import jakarta.servlet.http.HttpServletRequest;
+import com.dtools.bootstrap.logging.LoggingRequestAttributes;
 import org.slf4j.Logger;
 
 /**
@@ -18,6 +19,7 @@ public abstract class BaseExceptionHandler {
      * @注意: 适用于客户端可见且风险较低的异常
      */
     protected void logInfo(Logger logger, Exception exception, HttpServletRequest request) {
+        request.setAttribute(LoggingRequestAttributes.HANDLED_EXCEPTION, exception);
         logger.info("{}\n{}", exception.getMessage(), buildRequestContext(request), exception);
     }
 
@@ -28,6 +30,7 @@ public abstract class BaseExceptionHandler {
      * @注意: 适用于业务失败、参数校验失败、权限异常等需要关注的失败
      */
     protected void logWarn(Logger logger, Exception exception, HttpServletRequest request) {
+        request.setAttribute(LoggingRequestAttributes.HANDLED_EXCEPTION, exception);
         logger.warn("{}\n{}", exception.getMessage(), buildRequestContext(request), exception);
     }
 
@@ -38,6 +41,7 @@ public abstract class BaseExceptionHandler {
      * @注意: 适用于系统异常和未预期异常
      */
     protected void logError(Logger logger, Exception exception, HttpServletRequest request) {
+        request.setAttribute(LoggingRequestAttributes.HANDLED_EXCEPTION, exception);
         logger.error("{}\n{}", exception.getMessage(), buildRequestContext(request), exception);
     }
 
