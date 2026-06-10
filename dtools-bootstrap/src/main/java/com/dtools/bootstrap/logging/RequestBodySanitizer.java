@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -25,6 +26,7 @@ public class RequestBodySanitizer {
 
     private final SensitiveValueMasker sensitiveValueMasker;
 
+    @Autowired
     public RequestBodySanitizer(ObjectMapper objectMapper) {
         this(objectMapper, new SensitiveValueMasker());
     }
