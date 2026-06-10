@@ -4,39 +4,6 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.dtools.bootstrap.mapper.ApiRequestLogMapper">
 
-    <insert id="insert">
-        insert into api_request_log
-        (trace_id,
-         user_id,
-         username,
-         method,
-         uri,
-         client_ip,
-         user_agent,
-         http_status,
-         response_code,
-         cost_ms,
-         exception_type,
-         exception_message,
-         exception_stack,
-         request_params_on_error,
-         created_at)
-        values
-        (#{traceId},
-         #{userId},
-         #{username},
-         #{method},
-         #{uri},
-         #{clientIp},
-         #{userAgent},
-         #{httpStatus},
-         #{responseCode},
-         #{costMs},
-         #{exceptionType},
-         #{exceptionMessage},
-         #{exceptionStack},
-         #{requestParamsOnError},
-         now())
-    </insert>
+
 </mapper>
 
