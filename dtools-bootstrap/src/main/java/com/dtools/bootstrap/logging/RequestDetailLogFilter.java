@@ -66,7 +66,7 @@ public class RequestDetailLogFilter extends OncePerRequestFilter {
         }
 
         long start = System.currentTimeMillis();
-        HttpServletRequest requestToUse = shouldWrapRequest(request) ? new ContentCachingRequestWrapper(request) : request;
+        HttpServletRequest requestToUse = shouldWrapRequest(request) ? new ContentCachingRequestWrapper(request, properties.getMaxBodyLength()) : request;
         try {
             filterChain.doFilter(requestToUse, response);
         } finally {

@@ -15,7 +15,7 @@ public class RefreshTokenCommand {
     /**
      * 刷新凭证明文，仅用于本次哈希比对和轮换。
      */
-    @LogSensitive(strategy = SensitiveStrategy.HIDDEN)
+    @LogSensitive(strategy = SensitiveStrategy.TOKEN)
     @NotBlank(message = "刷新凭证不能为空")
     private String refreshToken;
 

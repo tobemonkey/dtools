@@ -14,7 +14,7 @@ public class LogoutCommand {
     /**
      * 待撤销的刷新凭证明文。
      */
-    @LogSensitive(strategy = SensitiveStrategy.HIDDEN)
+    @LogSensitive(strategy = SensitiveStrategy.TOKEN)
     private String refreshToken;
 
     public String getRefreshToken() {
