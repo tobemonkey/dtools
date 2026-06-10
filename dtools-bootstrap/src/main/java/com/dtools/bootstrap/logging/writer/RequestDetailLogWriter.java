@@ -1,5 +1,7 @@
-package com.dtools.bootstrap.logging;
+package com.dtools.bootstrap.logging.writer;
 
+import com.dtools.bootstrap.logging.event.RequestDetailLogEvent;
+import com.dtools.bootstrap.logging.properties.RequestDetailLogProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -119,4 +121,3 @@ public class RequestDetailLogWriter {
         }
     }
 }
-

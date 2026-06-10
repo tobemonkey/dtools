@@ -1,6 +1,8 @@
-package com.dtools.bootstrap.logging;
+package com.dtools.bootstrap.logging.writer;
 
 import com.dtools.bootstrap.mapper.ApiRequestLogMapper;
+import com.dtools.bootstrap.logging.event.ApiRequestLogEvent;
+import com.dtools.bootstrap.logging.properties.ApiRequestLogProperties;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
@@ -117,4 +119,3 @@ public class ApiRequestLogDbWriter {
         }
     }
 }
-

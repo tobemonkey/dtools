@@ -1,4 +1,4 @@
-package com.dtools.bootstrap.logging;
+package com.dtools.bootstrap.logging.event;
 
 /**
  * @description: 接口 DB 请求日志事件，承载一次 API 请求的数据库日志快照

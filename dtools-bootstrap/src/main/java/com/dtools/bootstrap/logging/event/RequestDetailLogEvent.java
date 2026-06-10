@@ -1,4 +1,4 @@
-package com.dtools.bootstrap.logging;
+package com.dtools.bootstrap.logging.event;
 
 /**
  * @description: 请求详情日志事件，承载一次 HTTP 请求的诊断日志快照

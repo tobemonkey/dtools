@@ -1,5 +1,7 @@
-package com.dtools.bootstrap.logging;
+package com.dtools.bootstrap.logging.event;
 
+import com.dtools.bootstrap.logging.context.LoggingRequestAttributes;
+import com.dtools.bootstrap.logging.sanitize.RequestErrorParamSnapshotBuilder;
 import com.dtools.common.exception.SystemException;
 import com.dtools.common.trace.TraceContext;
 import com.fasterxml.jackson.databind.JsonNode;
