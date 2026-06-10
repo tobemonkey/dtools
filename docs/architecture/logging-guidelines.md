@@ -47,8 +47,8 @@ dtools 日志系统用于支撑本地开发、桌面端排障、Web 部署排障
 
 原则：
 
-- 默认关闭，未建表环境不得影响本地开发。
-- 支持通过 `application.yml`、环境变量或 JVM 启动参数打开关闭。
+- 默认开启，为接口监控页面提供统计数据来源。
+- 支持通过 `application.yml`、环境变量或 JVM 启动参数打开关闭；未建表环境可临时关闭。
 - 采用异步写入，队列满或写库失败不得影响请求结果。
 - 每个 API 请求写入一条 `api_request_log`。
 - 成功请求只记录 traceId、用户、方法、路径、HTTP 状态、`ApiResponse.code` 和耗时。
@@ -95,7 +95,7 @@ dtools 日志系统用于支撑本地开发、桌面端排障、Web 部署排障
 dtools:
   log:
     api-db:
-      enabled: false
+      enabled: true
       async-enabled: true
       queue-capacity: 10000
       max-request-cache-length: 20000
@@ -116,5 +116,5 @@ JVM 启动参数示例：
 -Ddtools.log.request-detail.enabled=true
 -Ddtools.log.request-detail.include-body=true
 -Ddtools.log.request-detail.retention-days=7
--Ddtools.log.api-db.enabled=true
+-Ddtools.log.api-db.enabled=false
 ```

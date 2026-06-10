@@ -23,7 +23,7 @@ dtools:
     refresh-token-seconds: 604800
   log:
     api-db:
-      enabled: false
+      enabled: true
       async-enabled: true
       queue-capacity: 10000
       max-request-cache-length: 20000

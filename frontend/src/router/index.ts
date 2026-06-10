@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteLocationNormalized } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
+import ApiMonitorView from '../views/ApiMonitorView.vue'
 import ForbiddenView from '../views/ForbiddenView.vue'
 import LoginView from '../views/LoginView.vue'
 import WorkspaceView from '../views/WorkspaceView.vue'
@@ -28,6 +29,14 @@ export const router = createRouter({
       path: '/',
       name: 'workspace',
       component: WorkspaceView,
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/api-monitor',
+      name: 'apiMonitor',
+      component: ApiMonitorView,
       meta: {
         requiresAuth: true,
       },

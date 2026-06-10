@@ -67,6 +67,32 @@ class ApiRequestLogFilterTest {
         assertThat(writer.event.getRequestParamsOnError()).isNull();
     }
 
+    /**
+     * @description: 验证非 API 请求不会写入接口请求主账本
+     * @author: yesterday'jam
+     * @date: 2026/06/10
+     * @注意: 只有 /api/** 请求属于接口 DB 日志统计范围
+     */
+    @Test
+    void filterShouldSkipNonApiRequest() throws Exception {
+        ApiRequestLogProperties properties = new ApiRequestLogProperties();
+        properties.setEnabled(true);
+        properties.setAsyncEnabled(false);
+        CapturingApiRequestLogDbWriter writer = new CapturingApiRequestLogDbWriter(properties);
+        ApiRequestLogFilter filter = new ApiRequestLogFilter(
+                properties,
+                new ApiRequestLogEventFactory(objectMapper, new RequestErrorParamSnapshotBuilder(objectMapper)),
+                writer
+        );
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/assets/index.js");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilter(request, response, (wrappedRequest, wrappedResponse) -> wrappedResponse.getWriter().write("ok"));
+
+        assertThat(response.getContentAsString()).isEqualTo("ok");
+        assertThat(writer.event).isNull();
+    }
+
     private static class CapturingApiRequestLogDbWriter extends ApiRequestLogDbWriter {
 
         private ApiRequestLogEvent event;
